@@ -1,0 +1,95 @@
+<!doctype html>
+<html>
+<head>
+  <title>Graph 3D demo</title>
+
+  <style>
+    body {font: 10pt arial;}
+  </style>
+
+  <script type="text/javascript" src="../../dist/vis.js"></script>
+
+  <script type="text/javascript">
+    var data = null;
+    var graph = null;
+    var function_cache = {};
+
+    function custom(x, y) {
+      var cache_key = (x % 360).toString() + ',' + (y % 360).toString();
+      var cached_val = function_cache[cache_key];
+      if (cached_val) return cached_val;
+      console.log("harg");
+      var r_x = x * 3.14159 / 180;
+      var r_y = y * 3.14159 / 180;
+      var result = Math.abs(Math.sin(r_x) * Math.sin(r_y)) * -1;
+      function_cache[cache_key] = result;
+      return result;
+    }
+
+    // Called when the Visualization API is loaded.
+    function drawVisualization() {
+      // Create and populate a data table.
+      data = new vis.DataSet();
+      // create some nice looking data with sin/cos
+      var counter = 0;
+      var q_max = document.getElementById('q_max').value || 1;
+      var k_c = document.getElementById('k_c').value || 1;
+      var steps = 36 * q_max;  // number of datapoints will be steps*steps
+      var axisMax = 180 * q_max;
+      var axisStep = axisMax / steps;
+      for (var x = 0; x < axisMax; x+=axisStep) {
+        for (var y = 0; y < axisMax; y+=axisStep) {
+          var value = custom(x,y);
+          data.add({id:counter++,x:x,y:y,z:value,style:value});
+        }
+      }
+
+      // specify options
+      var options = {
+        width:  '1000px',
+        height: '650px',
+        xCenter: '50%',
+        style: 'surface',
+        xStep: 3600,
+        yStep: 3600,
+        zStep: 0,
+        showPerspective: true,
+        showGrid: false,
+        showShadow: false,
+        keepAspectRatio: true,
+        verticalRatio: (k_c / (q_max * 1.0)),
+        xLabel: "Qmax",
+        yLabel: "Qmax",
+        zLabel: "Kc",
+        cameraPosition: {
+          horizontal: 1.0,
+          vertical: 0.4,
+          distance: 2.0
+        }
+      };
+
+      // Instantiate our graph object.
+      var container = document.getElementById('mygraph');
+      var start = Date.now();
+      graph = new vis.Graph3d(container, data, options);
+      var end = Date.now();
+      console.log(end - start);
+    }
+  </script>
+  <script src="../googleAnalytics.js"></script>
+</head>
+
+<body onload="drawVisualization();">
+<div>
+  Q-max:
+  <input id="q_max" type="range" min="1" max="10" step="1" style="width: 100px" value=1 onchange="drawVisualization()">
+</div>
+<div>
+  K-complex:
+  <input id="k_c" type="range" min="0.1" max="2.0" step="0.1" style="width: 100px" value=1 onchange="drawVisualization()">
+</div>
+<div id="mygraph" style="position: center;"></div>
+
+<div id="info"></div>
+</body>
+</html>
